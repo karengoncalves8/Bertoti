@@ -1,0 +1,367 @@
+{
+  "elements": [
+    {
+      "type": "image",
+      "name": "BlobsVector",
+      "position": {
+        "x": -653.0,
+        "y": -350.0
+      },
+      "size": {
+        "width": 526.0,
+        "height": 661.0
+      },
+      "image_url": null
+    },
+    {
+      "type": "image",
+      "name": "BlobsVector",
+      "position": {
+        "x": -574.0,
+        "y": -414.0
+      },
+      "size": {
+        "width": 530.0,
+        "height": 607.0
+      },
+      "image_url": null
+    },
+    {
+      "type": "image",
+      "name": "BlobsVector",
+      "position": {
+        "x": -677.0,
+        "y": -5.0
+      },
+      "size": {
+        "width": 550.0,
+        "height": 469.0
+      },
+      "image_url": null
+    },
+    {
+      "type": "image",
+      "name": "MainImage",
+      "position": {
+        "x": -630.0,
+        "y": -303.0
+      },
+      "size": {
+        "width": 419.0,
+        "height": 613.0
+      },
+      "image_url": "b30fea3a782c6e0eec322c7195ca7926bc391328"
+    },
+    {
+      "type": "button",
+      "name": "ContentFrame",
+      "position": {
+        "x": -82.0,
+        "y": -493.0
+      },
+      "size": {
+        "width": 845.0,
+        "height": 1024.0
+      },
+      "color": {
+        "r": 0.9895182251930237,
+        "g": 0.9949687719345093,
+        "b": 1.0,
+        "a": 1.0
+      }
+    },
+    {
+      "type": "text",
+      "name": "Reserved directs to Leo Barreto",
+      "position": {
+        "x": 193.0,
+        "y": 464.0
+      },
+      "size": {
+        "width": 279.0,
+        "height": 23.0
+      },
+      "text": "Reserved directs to Leo Barreto"
+    },
+    {
+      "type": "button",
+      "name": "GitHub",
+      "position": {
+        "x": 383.0,
+        "y": 327.9999084472656
+      },
+      "size": {
+        "width": 50.0,
+        "height": 50.00000762939453
+      },
+      "color": null
+    },
+    {
+      "type": "text",
+      "name": "Sing up with GitHub",
+      "position": {
+        "x": 439.0,
+        "y": 341.9999084472656
+      },
+      "size": {
+        "width": 138.0,
+        "height": 21.0000057220459
+      },
+      "text": "Sing up with GitHub"
+    },
+    {
+      "type": "button",
+      "name": "ButtonFrame",
+      "position": {
+        "x": 373.0,
+        "y": 325.0
+      },
+      "size": {
+        "width": 220.0,
+        "height": 55.0
+      },
+      "color": null
+    },
+    {
+      "type": "button",
+      "name": "Google",
+      "position": {
+        "x": 79.0,
+        "y": 327.9999084472656
+      },
+      "size": {
+        "width": 50.0,
+        "height": 50.00000762939453
+      },
+      "color": null
+    },
+    {
+      "type": "text",
+      "name": "Sing up with Google",
+      "position": {
+        "x": 138.0,
+        "y": 341.9999084472656
+      },
+      "size": {
+        "width": 141.0,
+        "height": 21.0000057220459
+      },
+      "text": "Sing up with Google"
+    },
+    {
+      "type": "button",
+      "name": "ButtonFrame",
+      "position": {
+        "x": 72.0,
+        "y": 325.0
+      },
+      "size": {
+        "width": 220.0,
+        "height": 55.0
+      },
+      "color": null
+    },
+    {
+      "type": "text",
+      "name": "- OR -",
+      "position": {
+        "x": 292.0,
+        "y": 271.0
+      },
+      "size": {
+        "width": 81.0,
+        "height": 39.0
+      },
+      "text": "- OR -"
+    },
+    {
+      "type": "text",
+      "name": "Already have a account? Log in",
+      "position": {
+        "x": 43.0,
+        "y": 203.0
+      },
+      "size": {
+        "width": 282.0,
+        "height": 27.0
+      },
+      "text": "Already have a account? Log in"
+    },
+    {
+      "type": "button",
+      "name": "ButtonFrame",
+      "position": {
+        "x": 162.0,
+        "y": 128.0
+      },
+      "size": {
+        "width": 340.0,
+        "height": 60.0
+      },
+      "color": {
+        "r": 0.9764705896377563,
+        "g": 0.929411768913269,
+        "b": 0.19607843458652496,
+        "a": 1.0
+      }
+    },
+    {
+      "type": "text",
+      "name": "Create Account",
+      "position": {
+        "x": 232.0,
+        "y": 138.0
+      },
+      "size": {
+        "width": 215.0,
+        "height": 39.0
+      },
+      "text": "Create Account"
+    },
+    {
+      "type": "text",
+      "name": "Password",
+      "position": {
+        "x": 43.0,
+        "y": -7.0
+      },
+      "size": {
+        "width": 98.0,
+        "height": 30.0
+      },
+      "text": "Password"
+    },
+    {
+      "type": "text",
+      "name": "Enter your Password here",
+      "position": {
+        "x": 81.0,
+        "y": 40.0
+      },
+      "size": {
+        "width": 252.0,
+        "height": 30.0
+      },
+      "text": "Enter your Password here"
+    },
+    {
+      "type": "input",
+      "name": "Input",
+      "position": {
+        "x": 41.0,
+        "y": 23.0
+      },
+      "size": {
+        "width": 600.0,
+        "height": 65.0
+      },
+      "color": {
+        "r": 0.6901960968971252,
+        "g": 0.729411780834198,
+        "b": 0.7647058963775635,
+        "a": 1.0
+      }
+    },
+    {
+      "type": "text",
+      "name": "Email",
+      "position": {
+        "x": 43.0,
+        "y": -142.0
+      },
+      "size": {
+        "width": 56.0,
+        "height": 30.0
+      },
+      "text": "Email"
+    },
+    {
+      "type": "text",
+      "name": "Enter your Email here",
+      "position": {
+        "x": 81.0,
+        "y": -95.0
+      },
+      "size": {
+        "width": 210.0,
+        "height": 30.0
+      },
+      "text": "Enter your Email here"
+    },
+    {
+      "type": "input",
+      "name": "Input",
+      "position": {
+        "x": 41.0,
+        "y": -112.0
+      },
+      "size": {
+        "width": 600.0,
+        "height": 65.0
+      },
+      "color": {
+        "r": 0.6901960968971252,
+        "g": 0.729411780834198,
+        "b": 0.7647058963775635,
+        "a": 1.0
+      }
+    },
+    {
+      "type": "text",
+      "name": "Full Name",
+      "position": {
+        "x": 43.0,
+        "y": -278.0
+      },
+      "size": {
+        "width": 101.0,
+        "height": 30.0
+      },
+      "text": "Full Name"
+    },
+    {
+      "type": "text",
+      "name": "Enter your Fulll Name here",
+      "position": {
+        "x": 81.0,
+        "y": -231.0
+      },
+      "size": {
+        "width": 260.0,
+        "height": 30.0
+      },
+      "text": "Enter your Fulll Name here"
+    },
+    {
+      "type": "input",
+      "name": "Input",
+      "position": {
+        "x": 41.0,
+        "y": -248.0
+      },
+      "size": {
+        "width": 600.0,
+        "height": 65.0
+      },
+      "color": {
+        "r": 0.6901960968971252,
+        "g": 0.729411780834198,
+        "b": 0.7647058963775635,
+        "a": 1.0
+      }
+    },
+    {
+      "type": "text",
+      "name": "Title",
+      "position": {
+        "x": 172.0,
+        "y": -369.0
+      },
+      "size": {
+        "width": 337.0,
+        "height": 39.0
+      },
+      "text": "Create your Free Account"
+    }
+  ]
+}
