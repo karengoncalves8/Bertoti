@@ -3,6 +3,7 @@ def process_figma_data(figma_data):
 
     def process_children(children):
         for child in children:
+            # Caso seja um texto
             if child['type'] == 'TEXT':
                 element = {
                     "type": "text",
@@ -15,10 +16,15 @@ def process_figma_data(figma_data):
                         "width": child['absoluteBoundingBox']['width'],
                         "height": child['absoluteBoundingBox']['height']
                     },
-                    "text": child.get('characters', '')
+                    "text": child.get('characters', ''),
+                    "style": {
+                        "fontFamily": child.get('style', {}).get('fontFamily', ''),
+                        "fontSize": child.get('style', {}).get('fontSize', 12)
+                    }
                 }
                 elements.append(element)
 
+            # Caso seja um retângulo ou input/button
             elif child['type'] == 'RECTANGLE':
                 element_type = 'input' if "Input" in child['name'] else 'button'
                 
@@ -44,10 +50,11 @@ def process_figma_data(figma_data):
                 }
                 elements.append(element)
 
-            elif child['type'] == 'GROUP':
-                print(f"Processando grupo: {child['name']}")  
+            # Caso seja um grupo, chama a função recursiva para processar seus filhos
+            elif child['type'] == 'GROUP' or child['type'] == 'FRAME':
                 process_children(child['children'])  
 
+            # Caso seja um vetor (imagem)
             elif child['type'] == 'VECTOR':
                 image_url = None
                 if 'fills' in child:
@@ -66,7 +73,7 @@ def process_figma_data(figma_data):
                         "width": child['absoluteBoundingBox']['width'],
                         "height": child['absoluteBoundingBox']['height']
                     },
-                    "image_url": image_url
+                    "image_url": image_url if image_url else None
                 }
                 elements.append(element)
 

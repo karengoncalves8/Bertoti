@@ -3,3 +3,5 @@
 __pycache__/
 venv/
 .env
+fine_tuned_gpt2
+results

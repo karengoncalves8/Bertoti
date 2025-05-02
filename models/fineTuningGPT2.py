@@ -1,29 +1,32 @@
-
+import os
 from transformers import GPT2LMHeadModel, GPT2Tokenizer, Trainer, TrainingArguments
 from datasets import load_dataset
 
 # Load model and its tokenizer 
-model = GPT2LMHeadModel.from_pretrained("gpt2") # download its model only the first time
+model = GPT2LMHeadModel.from_pretrained("gpt2")  # download the model the first time
 tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
 
-# Load dataset
-dataset = load_dataset("json", data_files={"train": "data.jsonl"})
+# Set pad_token as eos_token
+tokenizer.pad_token = tokenizer.eos_token
+
+# Load dataset (make sure the path is correct)
+login_dataset_path = "D:\\FATEC\\3 sem\\Bertoti\\models\\datasets\\login_wireframes_dataset.jsonl"
+dataset = load_dataset("json", data_files=login_dataset_path)
 
 # Pre processing dataset - tokenizing prompts (inputs) and expected results (targets)
 def preprocess_dataset(dataset):
-    # List of the inputs at dataset
-    inputs = [data["prompt"] for data in dataset["train"]]
-    # List of the inputs at targets
-    targets = [data["output"] for data in dataset["train"]]
+    inputs = dataset["prompt"]
+    targets = dataset["output"]
     
-    # Tokenizing the lists
-    # Tokenizer args: - max_lenght: maximum amount of tokens; - truncation: in case it reaches max_lenght, truncate it (cut some of it); - padding: if its shorter than max_lenght, it will be filled. 
-    # Basically, makes sure every input has the same size
-    model_inputs = tokenizer(inputs, max_lenght=512, truncation=True, padding="max_lenght")
-    labels = tokenizer(targets, max_lenght=512, truncation=True, padding="max_lenght")
+    inputs = [str(i) for i in inputs]
+    targets = [str(t) for t in targets]
     
-    # Adding the labels to input dictionary
-    model_inputs["labels"] = labels["inputs_id"]
+    # Tokenizando os dados
+    model_inputs = tokenizer(inputs, padding=True, truncation=True, max_length=512, return_tensors="pt")
+    labels = tokenizer(targets, padding=True, truncation=True, max_length=512, return_tensors="pt")
+    
+    # Adicionando as labels ao dicionário de entradas
+    model_inputs["labels"] = labels["input_ids"]
     
     return model_inputs
 
@@ -32,25 +35,27 @@ tokenized_dataset = dataset.map(preprocess_dataset, batched=True)
 
 # Training the model 
 training_args = TrainingArguments(
-    output_dir="./results", # Folder to save the model
-    evaluation_strategy="epoch", # Rate training at each epoch (epoch is the number of iterations over the dataset, how many times it will be processed)
-    learning_rate=2e-5, # Learning rate (how fast the model will reajust weights)
-    per_device_train_batch_size=8, # Size of training batch (subset/slice of the dataset) - number of inputs the model will process each time
-    per_device_eval_batch_size=8, # Size of validation batch 
-    num_train_epochs=3, # number of epochs 
-    weight_decay=0.01, # controls the weights of the model - helps generalization of the model (avoid overfitting)
+    output_dir="./results",  # Folder to save the model
+    eval_steps=500,   # Evaluate every 500 steps 
+    no_cuda=True, 
+    learning_rate=2e-5,  # Learning rate (how fast the model will readjust weights)
+    per_device_train_batch_size=2,  # Size of training batch (subset/slice of the dataset) - number of inputs the model will process each time
+    per_device_eval_batch_size=2,  # Size of validation batch 
+    num_train_epochs=3,  # number of epochs (epoch is the number of iterations over the dataset, how many times it will be processed)
+    weight_decay=0.01,  # Controls the weights of the model - helps generalization of the model (avoid overfitting)
+    logging_dir='./logs', 
 )
 
 # Creating Trainer object
 trainer = Trainer(
-    model = model,
-    args = training_args,
+    model=model,
+    args=training_args,
     train_dataset=tokenized_dataset["train"]
 )
 
 # Initializing training
 trainer.train()
 
-# Saving fine tunned models
-model.save_pretrainer("./fine_tuned_gpt2")
+# Saving fine-tuned models
+model.save_pretrained("./fine_tuned_gpt2")
 tokenizer.save_pretrained("./fine_tuned_gpt2")
