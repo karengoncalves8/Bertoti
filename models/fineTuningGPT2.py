@@ -2,60 +2,72 @@ import os
 from transformers import GPT2LMHeadModel, GPT2Tokenizer, Trainer, TrainingArguments
 from datasets import load_dataset
 
-# Load model and its tokenizer 
-model = GPT2LMHeadModel.from_pretrained("gpt2")  # download the model the first time
+# Carrega modelo e tokenizer
+model = GPT2LMHeadModel.from_pretrained("gpt2")
 tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+tokenizer.pad_token = tokenizer.eos_token  # GPT2 não tem pad_token, usamos o eos_token
 
-# Set pad_token as eos_token
-tokenizer.pad_token = tokenizer.eos_token
+# Caminho do dataset
+login_dataset_path = "C:\\Users\\Autaza\\Documents\\Fatec\\Bertoti\\models\\datasets\\login_wireframes_dataset.jsonl"
 
-# Load dataset (make sure the path is correct)
-login_dataset_path = "D:\\FATEC\\3 sem\\Bertoti\\models\\datasets\\login_wireframes_dataset.jsonl"
-dataset = load_dataset("json", data_files=login_dataset_path)
+# Carrega o dataset
+raw_dataset = load_dataset("json", data_files=login_dataset_path)["train"]
 
-# Pre processing dataset - tokenizing prompts (inputs) and expected results (targets)
-def preprocess_dataset(dataset):
-    inputs = dataset["prompt"]
-    targets = dataset["output"]
-    
-    inputs = [str(i) for i in inputs]
-    targets = [str(t) for t in targets]
-    
-    # Tokenizando os dados
-    model_inputs = tokenizer(inputs, padding=True, truncation=True, max_length=512, return_tensors="pt")
-    labels = tokenizer(targets, padding=True, truncation=True, max_length=512, return_tensors="pt")
-    
-    # Adicionando as labels ao dicionário de entradas
-    model_inputs["labels"] = labels["input_ids"]
-    
-    return model_inputs
+# Divide dataset: 80% treino, 10% validação, 10% teste
+split_dataset = raw_dataset.train_test_split(test_size=0.2, seed=42)
+valid_test = split_dataset["test"].train_test_split(test_size=0.5, seed=42)
+dataset = {
+    "train": split_dataset["train"],
+    "validation": valid_test["train"],
+    "test": valid_test["test"]
+}
 
-# Applying pre processing
-tokenized_dataset = dataset.map(preprocess_dataset, batched=True)
+# Pré-processamento no formato input + output concatenado
+def preprocess_dataset(batch):
+    prompts = [str(p) for p in batch["prompt"]]
+    outputs = [str(o) for o in batch["output"]]
 
-# Training the model 
+    combined = [f"{prompt}\n{output}" for prompt, output in zip(prompts, outputs)]
+
+    tokenized = tokenizer(combined, padding="max_length", truncation=True, max_length=512)
+    tokenized["labels"] = tokenized["input_ids"].copy()
+    return tokenized
+
+# Aplica a tokenização em todos os splits
+tokenized_dataset = {
+    split: dataset[split].map(preprocess_dataset, batched=True)
+    for split in dataset
+}
+
+# Argumentos de treinamento
 training_args = TrainingArguments(
-    output_dir="./results",  # Folder to save the model
-    eval_steps=500,   # Evaluate every 500 steps 
-    no_cuda=True, 
-    learning_rate=2e-5,  # Learning rate (how fast the model will readjust weights)
-    per_device_train_batch_size=2,  # Size of training batch (subset/slice of the dataset) - number of inputs the model will process each time
-    per_device_eval_batch_size=2,  # Size of validation batch 
-    num_train_epochs=3,  # number of epochs (epoch is the number of iterations over the dataset, how many times it will be processed)
-    weight_decay=0.01,  # Controls the weights of the model - helps generalization of the model (avoid overfitting)
-    logging_dir='./logs', 
+    output_dir="./results",
+    eval_steps=500,
+    save_strategy="epoch",
+    learning_rate=2e-5,
+    per_device_train_batch_size=4,
+    per_device_eval_batch_size=4,
+    num_train_epochs=10,
+    weight_decay=0.01,
+    logging_dir='./logs',
+    save_total_limit=2,
 )
 
-# Creating Trainer object
+# Trainer
 trainer = Trainer(
     model=model,
     args=training_args,
-    train_dataset=tokenized_dataset["train"]
+    train_dataset=tokenized_dataset["train"],
+    eval_dataset=tokenized_dataset["validation"]
 )
 
-# Initializing training
+# Treina
 trainer.train()
 
-# Saving fine-tuned models
+# Avaliação final no conjunto de teste
+metrics = trainer.evaluate(tokenized_dataset["test"])
+print("Test set evaluation metrics:", metrics)
+
+# Salva o modelo e tokenizer fine-tunados
 model.save_pretrained("./fine_tuned_gpt2")
 tokenizer.save_pretrained("./fine_tuned_gpt2")
