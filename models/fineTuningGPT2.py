@@ -1,21 +1,26 @@
 import os
+from huggingface_hub import HfApi
 from transformers import GPT2LMHeadModel, GPT2Tokenizer, Trainer, TrainingArguments
 from datasets import load_dataset
 
-# Carrega modelo e tokenizer
+# Load the model and its tokenizer
 model = GPT2LMHeadModel.from_pretrained("gpt2")
 tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
-tokenizer.pad_token = tokenizer.eos_token  # GPT2 não tem pad_token, usamos o eos_token
+tokenizer.pad_token = tokenizer.eos_token  
 
-# Caminho do dataset
-login_dataset_path = "C:\\Users\\Autaza\\Documents\\Fatec\\Bertoti\\models\\datasets\\login_wireframes_dataset.jsonl"
+# Autenticação com o Hugging Face
+api = HfApi()
+hf_token = "seu_token_de_autenticacao"
+api.set_access_token("")
 
-# Carrega o dataset
-raw_dataset = load_dataset("json", data_files=login_dataset_path)["train"]
+# Carregar o dataset privado do Hugging Face
+dataset = load_dataset("karencgoncalves/login_wireframe_json", use_auth_token=hf_token)
 
-# Divide dataset: 80% treino, 10% validação, 10% teste
-split_dataset = raw_dataset.train_test_split(test_size=0.2, seed=42)
+# Dividindo o dataset: 80% para treino, 10% para validação e 10% para teste
+split_dataset = dataset["train"].train_test_split(test_size=0.2, seed=42)
 valid_test = split_dataset["test"].train_test_split(test_size=0.5, seed=42)
+
+# Organizando o dataset final
 dataset = {
     "train": split_dataset["train"],
     "validation": valid_test["train"],
@@ -27,8 +32,8 @@ def preprocess_dataset(batch):
     prompts = [str(p) for p in batch["prompt"]]
     outputs = [str(o) for o in batch["output"]]
 
-    combined = [f"{prompt}\n{output}" for prompt, output in zip(prompts, outputs)]
-
+    combined = [f"{prompt} em JSON. \n Resultado esperado: {output}" for prompt, output in zip(prompts, outputs)]
+    print('combined', combined)
     tokenized = tokenizer(combined, padding="max_length", truncation=True, max_length=512)
     tokenized["labels"] = tokenized["input_ids"].copy()
     return tokenized

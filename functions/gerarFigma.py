@@ -25,7 +25,7 @@ def gerar_json_wireframe(prompt):
         do_sample=True,            # Sampling ajuda a evitar repetições
         top_k=20,                  # Limita a escolha de tokens aos top 50
         top_p=0.95,                # Nucleus sampling
-        temperature=0.2,           # Aleatoriedade controlada
+        temperature=0.7,           # Aleatoriedade controlada
         eos_token_id=tokenizer.eos_token_id,
         pad_token_id=tokenizer.eos_token_id,
         attention_mask=attention_mask  # Passa a máscara de atenção
@@ -45,7 +45,17 @@ def gerar_json_wireframe(prompt):
         return {"error": "Não foi possível gerar um JSON válido", "raw": resposta_limpa}
 
 # Teste
-prompt = "Crie um wireframe de uma página de cadastro com nome, email e senha."
+prompt = """
+Monte um wireframe para uma tela de login com campos específicos para e-mail e senha
+Formato esperado (exemplo de saída):
+{
+  "elements": [
+    {"type": "input", "name": "Email", "position": {"x": 10, "y": 20}, "size": {"width": 200, "height": 30}},
+    {"type": "input", "name": "Senha", "position": {"x": 10, "y": 70}, "size": {"width": 200, "height": 30}},
+    {"type": "button", "name": "Login", "position": {"x": 10, "y": 120}, "size": {"width": 200, "height": 40}}
+  ]
+}
+"""
 resultado = gerar_json_wireframe(prompt)
 
 print("\n✅ Resultado final:")
