@@ -1,62 +1,59 @@
-import json
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
+import os 
+from dotenv import load_dotenv
 
-# Caminho para o modelo fine-tunado
-model_path = "C:\\Users\\Autaza\\Documents\\Fatec\\Bertoti\\fine_tuned_gpt2"
+load_dotenv()
 
-# Carregar modelo e tokenizer
-model = GPT2LMHeadModel.from_pretrained(model_path)
-tokenizer = GPT2Tokenizer.from_pretrained(model_path)
-tokenizer.pad_token = tokenizer.eos_token  # Necessário para compatibilidade
+hf = os.getenv("HH_TOKEN")
 
-# Função para gerar saída
+# Function to generate wireframe JSON output based on a text prompt
 def gerar_json_wireframe(prompt):
-    prompt_formatado = f"{prompt}\n"  # Formatação do prompt
+    # Load the pretrained model and tokenizer from Hugging Face Hub
+    model = GPT2LMHeadModel.from_pretrained("karencgoncalves/figma_wireframe_generator", token=hf)
+    tokenizer = GPT2Tokenizer.from_pretrained("karencgoncalves/figma_wireframe_generator", token=hf)
+
+    # Set the padding token to be the end-of-sequence token (needed for some generation configs)
+    tokenizer.pad_token = tokenizer.eos_token  
+
+    # Format the prompt by adding a newline character at the end
+    prompt_formatado = (
+        prompt +
+        """
+    Formato esperado (exemplo de saída):
+    {
+    "elements": [
+        {"type": "input", "name": "Email", "position": {"x": 10, "y": 20}, "size": {"width": 200, "height": 30}},
+        {"type": "input", "name": "Senha", "position": {"x": 10, "y": 70}, "size": {"width": 200, "height": 30}},
+        {"type": "button", "name": "Login", "position": {"x": 10, "y": 120}, "size": {"width": 200, "height": 40}}
+    ]
+    }
+    """
+    )
+    
+    # Encode the prompt into token IDs, returning a PyTorch tensor
     inputs = tokenizer.encode(prompt_formatado, return_tensors="pt")
     
-    # Criação da atenção de máscara
+    # Create the attention mask to tell the model which tokens are real (not padding)
     attention_mask = (inputs != tokenizer.pad_token_id).long()
 
-    # Geração com máscara de atenção
+    # Generate output tokens with specified decoding parameters
     outputs = model.generate(
         inputs,
-        max_length=512,
-        num_return_sequences=1,
-        do_sample=True,            # Sampling ajuda a evitar repetições
-        top_k=20,                  # Limita a escolha de tokens aos top 50
-        top_p=0.95,                # Nucleus sampling
-        temperature=0.7,           # Aleatoriedade controlada
-        eos_token_id=tokenizer.eos_token_id,
-        pad_token_id=tokenizer.eos_token_id,
-        attention_mask=attention_mask  # Passa a máscara de atenção
+        max_length=512,             # Maximum length of generated sequence
+        num_return_sequences=1,     # Number of sequences to generate
+        do_sample=True,             # Use sampling instead of greedy decoding to increase diversity
+        top_k=20,                   # Limit token selection to top 20 candidates at each step
+        top_p=0.95,                 # Use nucleus (top-p) sampling to consider tokens with cumulative probability 0.95
+        temperature=0.7,            # Controls randomness in generation (lower is less random)
+        eos_token_id=tokenizer.eos_token_id,  # End generation when EOS token is produced
+        pad_token_id=tokenizer.eos_token_id,  # Use EOS token as padding token ID for generation
+        attention_mask=attention_mask          # Pass attention mask so model ignores padding tokens
     )
 
+    # Decode generated tokens back to string, skipping special tokens like EOS
     resposta = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-    # Extrair somente o que vem após o prompt
+    # Remove the original prompt from the generated text to keep only the generated content
     resposta_limpa = resposta.replace(prompt_formatado, "").strip()
 
-    print("🧠 Saída bruta do modelo:\n", resposta_limpa)
-
-    # Tenta converter a parte útil em JSON
-    try:
-        return json.loads(resposta_limpa)
-    except json.JSONDecodeError:
-        return {"error": "Não foi possível gerar um JSON válido", "raw": resposta_limpa}
-
-# Teste
-prompt = """
-Monte um wireframe para uma tela de login com campos específicos para e-mail e senha
-Formato esperado (exemplo de saída):
-{
-  "elements": [
-    {"type": "input", "name": "Email", "position": {"x": 10, "y": 20}, "size": {"width": 200, "height": 30}},
-    {"type": "input", "name": "Senha", "position": {"x": 10, "y": 70}, "size": {"width": 200, "height": 30}},
-    {"type": "button", "name": "Login", "position": {"x": 10, "y": 120}, "size": {"width": 200, "height": 40}}
-  ]
-}
-"""
-resultado = gerar_json_wireframe(prompt)
-
-print("\n✅ Resultado final:")
-print(json.dumps(resultado, indent=2))
+    return resposta_limpa
