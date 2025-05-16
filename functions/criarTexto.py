@@ -1,55 +1,67 @@
 import os
 import re
 import unicodedata
-import ollama
 from datetime import datetime
 from pathlib import Path
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from dotenv import load_dotenv
 
-def obter_pasta_downloads():
-    if os.name == 'nt':  # Windows
-        return str(Path.home() / "Downloads")
-    elif os.name == 'posix':  # Linux/macOS
-        return str(Path.home() / "Downloads")
-    else:
-        raise Exception("Sistema operacional não suportado")
+load_dotenv()
 
-def gerar_nome_relatorio(texto):
+hf = os.getenv("HH_TOKEN")
+
+MODEL_ID = "google/flan-t5-large"
+
+# Carrega tokenizer e modelo uma única vez
+tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, token=hf)
+model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_ID, token=hf)
+
+def obter_pasta_downloads() -> str:
+    return str(Path.home() / "Downloads")
+
+def gerar_nome_relatorio(texto: str) -> str:
+    prompt = f"Gerar um título curto em português (máx. 3 palavras) para:\n\n{texto}"
     try:
-        resposta = ollama.chat(
-            model="gemma:2b",
-            messages=[
-                {"role": "system", "content": "Gere um nome curto (máximo 3 palavras) e objetivo para um arquivo baseado no texto. O nome deve estar em português, ser direto, sem frases longas, sem números, sem listas, sem abreviações e sem pontuação. Use apenas palavras chaves relacionadas ao conteúdo."},
-                {"role": "user", "content": texto}
-            ]
+        # tokeniza e trunca entrada em 512 tokens
+        inputs = tokenizer(
+            prompt,
+            return_tensors="pt",
+            truncation=True,
+            max_length=512
         )
-        nome_gerado = resposta['message']['content'].strip()
+        # gera título
+        outputs = model.generate(
+            **inputs,
+            max_length=10,
+            num_beams=5,
+            early_stopping=True
+        )
+        nome = tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
+        # normalização e limpeza
+        nome = unicodedata.normalize('NFKD', nome) \
+                         .encode('ASCII', 'ignore') \
+                         .decode('utf-8')
+        nome = re.sub(r'[^\w\s]', '', nome)
+        nome = re.sub(r'\s+', '_', nome)
+        if not nome:
+            raise ValueError("Título vazio")
+    except Exception:
+        nome = "Relatorio_" + datetime.today().strftime('%Y-%m-%d')
+    return os.path.join(obter_pasta_downloads(), nome)
 
-        nome_gerado = nome_gerado.replace("\n", " ").strip()
-
-        nome_gerado = unicodedata.normalize('NFKD', nome_gerado).encode('ASCII', 'ignore').decode('utf-8')
-
-        nome_gerado = re.sub(r'[^\w\s-]', '', nome_gerado)  # Remove caracteres especiais
-        nome_gerado = re.sub(r'\s+', '_', nome_gerado)  # Substitui espaços por "_"
-
-        if not nome_gerado:
-            nome_gerado = "Relatorio_" + datetime.today().strftime('%Y-%m-%d')
-
-        pasta_downloads = obter_pasta_downloads()
-
-        return os.path.join(pasta_downloads, nome_gerado)
+def salvar_texto_no_arquivo(texto: str, nome_relatorio: str) -> str:
+    # Prepara o caminho do arquivo (com o nome gerado)
+    arquivo_saida = (
+        nome_relatorio
+        if nome_relatorio.endswith('.txt')
+        else nome_relatorio + '.txt'
+    )
     
-    except Exception as e:
-        return os.path.join(obter_pasta_downloads(), f"Relatorio_{datetime.today().strftime('%Y-%m-%d')}")  # fallback seguro
+    # Garante que o diretório de saída existe
+    os.makedirs(os.path.dirname(arquivo_saida), exist_ok=True)
+    
+    # Salva o texto original no arquivo
+    with open(arquivo_saida, "w", encoding="utf-8") as f:
+        f.write(texto)
 
-def criar_estrutura(texto, nome_relatorio):
-    os.makedirs(nome_relatorio, exist_ok=True)
-
-    arquivos = [
-        {"caminho": f"{nome_relatorio}/resumo.txt", "conteudo": texto}
-    ]
-
-    for file in arquivos:
-        with open(file["caminho"], "w", encoding="utf-8") as f:
-            f.write(file["conteudo"])  
-
-    return {"diretorio": nome_relatorio, "arquivos": arquivos}
+    return texto
